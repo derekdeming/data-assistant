@@ -31,8 +31,13 @@ const FileUpload = () => {
                 alert('File size exceeds 10 GB')
                 return
             }
-
-            const data = await uploadToS3(file)
+            
+            try {
+                const data = await uploadToS3(file);
+                console.log(data)
+            } catch (error) {
+                console.log(error)
+            }
         },
     });
   return (
