@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone'
 import { uploadToS3 } from '@/lib/s3'
 
 
+
 const FileUpload = () => {
     const {getRootProps, getInputProps} = useDropzone({
         accept: [
