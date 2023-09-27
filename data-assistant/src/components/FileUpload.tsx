@@ -49,54 +49,42 @@ const FileUpload = () => {
         ].join(', ') as any,
         maxFiles: 20,
         onDrop: async (acceptedFiles) => {
-            setUploading(true);  // Set uploading to true at the start
-          
-            const uploadPromises = acceptedFiles.map(file => {
-              if (file.size > 10000 * 1024 * 1024) {
-                toast.error('File size too large. Needs to be less than 10GB');
-                return Promise.resolve(null);  // return a resolved promise with null for this file
-              }
-          
-              return uploadToS3(file)
-                .then(data => {
-                  if (!data?.file_key || !data.file_name) {
-                    toast.error("Error uploading file");
-                    return null;  // return null for this file
-                  }
-                  return data;  // return data for this file
-                })
-                .catch(error => {
-                  console.log(error);
-                  return null;  // return null for this file on error
-                });
-            });
-          
-            // Wait for all uploads to complete
-            const uploadResults = await Promise.all(uploadPromises);
-          
-            // Filter out any null values
-            const successfulUploads = uploadResults.filter(result => result) as any[];
-          
-            // If there were successful uploads, mutate the data and update the state
-            if (successfulUploads.length > 0) {
-              const mutationPromises = successfulUploads.map(data =>
-                mutate(data)
-              );
-          
-              // Wait for all mutations to complete
-              await Promise.all(mutationPromises);
-          
-              // Update the state with the names of successfully uploaded files
-              setUploadedFiles(prevFiles => [
-                ...prevFiles,
-                ...successfulUploads.map(data => data.file_name)
-              ]);
-          
-              toast.success(`${successfulUploads.length} file(s) were uploaded successfully!`);
-            }
-            setUploading(false);  // Set uploading to false at the end
-          },
+            const newUploadedFiles: string[]= [];  // Array to collect the names of successfully uploaded files
         
+            for (const file of acceptedFiles) {
+                if (file.size > 10000 * 1024 * 1024) {
+                    toast.error('File size too large. Needs to be less than 10GB');
+                    continue;  // Skip to the next file
+                }
+        
+                try {
+                    setUploading(true);
+                    const data = await uploadToS3(file);
+                    console.log("meow", data);
+                    if (!data?.file_key || !data.file_name) {
+                        toast.error("Error uploading file");
+                        continue;  // Skip to the next file
+                    }
+                    mutate(data, {
+                        onSuccess: ({ chat_id }) => {
+                            newUploadedFiles.push(file.name);  // Add the file name to the newUploadedFiles array
+                            toast.success("Files were uploaded!");
+                            router.push(`/chat/${chat_id}`);
+                        },
+                        onError: (err) => {
+                            toast.error("Error creating chat");
+                            console.error(err);
+                        },
+                    });
+                } catch (error) {
+                    console.log(error);
+                } finally {
+                    setUploading(false);
+                }
+            }
+            // Update the state with all new uploaded files
+            setUploadedFiles(prevFiles => [...prevFiles, ...newUploadedFiles]);
+        },
           });
           return (
             <div className="p-2 bg-white rounded-xl">
