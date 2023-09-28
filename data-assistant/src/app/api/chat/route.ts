@@ -1,10 +1,11 @@
 import { Configuration, OpenAIApi } from "openai-edge";
-import { Message, OpenAIStream, StreamingTextResponse } from "ai";
+import { OpenAIStream, StreamingTextResponse } from "ai";
 import { getContext } from "@/lib/context";
 import { db } from "@/lib/db";
 import { chats, messages as _messages } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { Message } from "ai/react"
 
 export const runtime = "edge";
 
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
     }
     const fileKey = _chats[0].fileKey;
     const lastMessage = messages[messages.length - 1];
-    const context = await getContext(lastMessage.content, fileKey);
+    const context = await getContext(lastMessage, fileKey);
 
     const prompt = {
       role: "system",
@@ -31,7 +32,6 @@ export async function POST(req: Request) {
       AI is a well-behaved and well-mannered individual.
       AI is always friendly, kind, and inspiring, and he is eager to provide vivid and thoughtful responses to the user.
       AI has the sum of all knowledge in their brain, and is able to accurately answer nearly any question about any topic in conversation.
-      AI assistant is a big fan of Pinecone and Vercel.
       START CONTEXT BLOCK
       ${context}
       END OF CONTEXT BLOCK
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     };
 
     const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
+      model: "gpt-3.5-turbo-16k",
       messages: [
         prompt,
         ...messages.filter((message: Message) => message.role === "user"),
