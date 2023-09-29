@@ -7,6 +7,9 @@ const config = new Configuration({
 const openai = new OpenAIApi(config);
 
 export async function getEmbeddings(text: string) {
+  if (typeof text !== 'string') {
+    throw new TypeError(`Expected text to be a string, but got ${typeof text}`);
+  }
   try {
     const response = await openai.createEmbedding({
       model: "text-embedding-ada-002",

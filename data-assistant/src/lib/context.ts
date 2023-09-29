@@ -6,12 +6,13 @@ export async function getMatchesFromEmbeddings(
   embeddings: number[],
   fileKey: string
 ) {
+  const pinecone = new Pinecone({
+    environment: process.env.PINECONE_ENVIRONMENT!,
+    apiKey: process.env.PINECONE_API_KEY!,
+  })
+  const pineconeIndex = await pinecone.index("data-researcher");
+
   try {
-    const client = new Pinecone({
-      environment: process.env.PINECONE_ENVIRONMENT!,
-      apiKey: process.env.PINECONE_API_KEY!,
-    });
-    const pineconeIndex = await client.index("data-researcher");
     const namespace = pineconeIndex.namespace(convertToAscii(fileKey));
     const queryResult = await pineconeIndex.query({
       topK: 10,

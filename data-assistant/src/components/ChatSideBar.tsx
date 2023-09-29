@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import { DrizzleChat } from "@/lib/db/schema";
 import Link from "next/link";
 import React from "react";
@@ -29,7 +29,7 @@ const ChatSideBar = ({ chats, chatId}: Props) => {
   }
 
   return (
-    <div className="w-full h-screen p-4 text-gray-200 bg-gray-900 relative"> {/* Added relative here */}
+    <div className="w-full h-screen p-4 text-gray-200 bg-gray-900"> {/* Added relative here */}
       <Link href="/">
         <Button className="w-full border-dashed border-white border">
           <PlusCircle className="mr-2 w-4 h-4" />
@@ -37,7 +37,7 @@ const ChatSideBar = ({ chats, chatId}: Props) => {
         </Button>
       </Link>
   
-      <div className="flex flex-col pb-20 gap-2 mt-4 ">
+      <div className="flex flex-col gap-2 mt-4 ">
         {chats.map((chat) => (
           <Link key={chat.id} href={`/chat/${chat.id}`}>
             <div
